@@ -1,7 +1,3 @@
-//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by Fernflower decompiler)
-//
 
 package com.mk.framework.components;
 
@@ -10,7 +6,7 @@ import com.mk.framework.consumer.ICallback;
 import com.mk.framework.context.IContext;
 
 public class ComponentStarter implements IComponent {
-    
+
     public void init(IContext context) {
         context.addSubscriber("start", new ICallback() {
             public void receive(Object data) {

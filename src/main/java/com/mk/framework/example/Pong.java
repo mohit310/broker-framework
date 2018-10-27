@@ -5,7 +5,7 @@ import com.mk.framework.consumer.ICallback;
 import com.mk.framework.context.IContext;
 
 public class Pong extends AbstractComponent {
-    
+
     public void subscribe(IContext context) {
         this.context = context;
         context.addSubscriber("ping", new ICallback() {
