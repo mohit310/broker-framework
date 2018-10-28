@@ -1,5 +1,6 @@
 package com.mk.framework.context;
 
+import com.mk.framework.IBrokerObject;
 import com.mk.framework.base.IComponent;
 import com.mk.framework.broker.DefaultBroker;
 import com.mk.framework.broker.IBroker;
@@ -20,6 +21,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class ApplicationContext implements IContext {
     private final IBroker broker;
     private final Map<String, List<ICallback>> subscribers = new ConcurrentHashMap();
+
     private List<IComponent> components = new ArrayList();
 
     public ApplicationContext(List<IComponent> components) {
@@ -29,11 +31,15 @@ public class ApplicationContext implements IContext {
     }
 
     public void start() {
-        send("start", "starting components");
+        ApplicationBrokerObject applicationBrokerObject = new ApplicationBrokerObject();
+        applicationBrokerObject.setData("STARTING ALL COMPONENTS");
+        send("start", applicationBrokerObject);
     }
 
     public void stop() {
-        send("stop", "stopping components");
+        ApplicationBrokerObject applicationBrokerObject = new ApplicationBrokerObject();
+        applicationBrokerObject.setData("STOPPING ALL COMPONENTS");
+        send("stop", applicationBrokerObject);
         broker.stop();
     }
 
@@ -45,15 +51,15 @@ public class ApplicationContext implements IContext {
 
     }
 
-    public void send(String messageTopic, Object data) {
+    public void send(String messageTopic, IBrokerObject data) {
         IEvent<IPayload> event = this.createEvent(messageTopic, data);
         broker.publish(event, this.subscribers);
     }
 
-    private IEvent<IPayload> createEvent(String messageTopic, Object data) {
+    private IEvent<IPayload> createEvent(String messageTopic, IBrokerObject data) {
         IPayload payload = new DefaultPayLoad();
         payload.setData(data);
-        IEvent<IPayload> event = new DefaultEvent(messageTopic);
+        IEvent<IPayload> event = new DefaultEvent(messageTopic, System.currentTimeMillis());
         Map<String, Object> eventHeaders = new HashMap();
         eventHeaders.put("TIMESTAMP", LocalDateTime.now());
         event.setHeader(eventHeaders);
@@ -71,6 +77,6 @@ public class ApplicationContext implements IContext {
         if (!((List) callbacks).contains(callback)) {
             ((List) callbacks).add(callback);
         }
-
     }
+
 }

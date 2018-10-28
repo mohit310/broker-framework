@@ -1,5 +1,7 @@
 package com.mk.framework.consumer;
 
+import com.mk.framework.IBrokerObject;
+
 public interface ICallback<T> {
-    void receive(T data);
+    <T extends IBrokerObject> void receive(T data);
 }

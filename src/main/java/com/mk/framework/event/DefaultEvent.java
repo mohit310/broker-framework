@@ -5,13 +5,19 @@ import java.util.Map;
 
 public class DefaultEvent<T> implements IEvent<T> {
     private String id;
+    private long timestamp;
     private Map<String, Object> headers = new HashMap();
     private IPayload<T> payload;
 
-    public DefaultEvent(String id) {
-        this.id = id;
+    public DefaultEvent() {
     }
 
+    public DefaultEvent(String id, long timestamp) {
+        this.id = id;
+        this.timestamp = timestamp;
+    }
+
+    @Override
     public String getId() {
         return this.id;
     }
@@ -31,4 +37,18 @@ public class DefaultEvent<T> implements IEvent<T> {
     public IPayload<T> getBody() {
         return this.payload;
     }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    @Override
+    public long getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
+    }
+
 }

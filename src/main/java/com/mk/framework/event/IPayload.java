@@ -1,8 +1,10 @@
 
 package com.mk.framework.event;
 
-public interface IPayload<T> {
-    void setData(T var1);
+import com.mk.framework.IBrokerObject;
 
-    T getData();
+public interface IPayload<T> {
+    <T extends IBrokerObject> void setData(T data);
+
+    <T extends IBrokerObject> T getData();
 }

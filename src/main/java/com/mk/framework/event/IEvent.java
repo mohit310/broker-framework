@@ -5,6 +5,8 @@ import java.util.Map;
 public interface IEvent<T> {
     String getId();
 
+    long getTimestamp();
+
     void setHeader(Map<String, Object> var1);
 
     Map<String, Object> getHeader();

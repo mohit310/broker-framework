@@ -1,12 +1,13 @@
 
 package com.mk.framework.context;
 
+import com.mk.framework.IBrokerObject;
 import com.mk.framework.consumer.ICallback;
 
 public interface IContext<V> {
-    void send(String var1, V var2);
+    <V extends IBrokerObject> void send(String messageId, V ibrokerObject);
 
-    void addSubscriber(String var1, ICallback<V> var2);
+    <V extends IBrokerObject> void addSubscriber(String messageId, ICallback<V> callback);
 
     void start();
 

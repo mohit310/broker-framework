@@ -1,16 +1,17 @@
 package com.mk.framework.event;
 
-public class DefaultPayLoad<T> implements IPayload<T> {
-    private T data;
+import com.mk.framework.IBrokerObject;
 
-    public DefaultPayLoad() {
-    }
+public class DefaultPayLoad implements IPayload {
+    private IBrokerObject data;
 
-    public void setData(T data) {
+    @Override
+    public void setData(IBrokerObject data) {
         this.data = data;
     }
 
-    public T getData() {
+    @Override
+    public IBrokerObject getData() {
         return this.data;
     }
 }
