@@ -1,6 +1,6 @@
 package com.mk.framework.event;
 
-import com.mk.framework.IBrokerObject;
+import com.mk.framework.data.IBrokerObject;
 
 public class DefaultPayLoad implements IPayload {
     private IBrokerObject data;
@@ -13,5 +13,12 @@ public class DefaultPayLoad implements IPayload {
     @Override
     public IBrokerObject getData() {
         return this.data;
+    }
+
+    @Override
+    public String toString() {
+        return "DefaultPayLoad{" +
+                "data=" + data +
+                '}';
     }
 }

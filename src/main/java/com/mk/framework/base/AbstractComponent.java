@@ -1,6 +1,6 @@
 package com.mk.framework.base;
 
-import com.mk.framework.IBrokerObject;
+import com.mk.framework.data.IBrokerObject;
 import com.mk.framework.consumer.ICallback;
 import com.mk.framework.context.IContext;
 

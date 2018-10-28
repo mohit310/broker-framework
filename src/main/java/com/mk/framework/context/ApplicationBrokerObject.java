@@ -1,6 +1,6 @@
 package com.mk.framework.context;
 
-import com.mk.framework.IBrokerObject;
+import com.mk.framework.data.IBrokerObject;
 
 public class ApplicationBrokerObject implements IBrokerObject {
     private String data;

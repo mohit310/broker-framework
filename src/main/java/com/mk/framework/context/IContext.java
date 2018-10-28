@@ -1,8 +1,8 @@
 
 package com.mk.framework.context;
 
-import com.mk.framework.IBrokerObject;
 import com.mk.framework.consumer.ICallback;
+import com.mk.framework.data.IBrokerObject;
 
 public interface IContext<V> {
     <V extends IBrokerObject> void send(String messageId, V ibrokerObject);
@@ -12,4 +12,6 @@ public interface IContext<V> {
     void start();
 
     void stop();
+
+    void replay();
 }

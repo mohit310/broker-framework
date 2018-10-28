@@ -1,10 +1,11 @@
 package com.mk.framework.broker;
 
-import com.mk.framework.IBrokerObject;
 import com.mk.framework.consumer.ICallback;
+import com.mk.framework.context.ApplicationBrokerObject;
 import com.mk.framework.event.IEvent;
 import com.mk.framework.event.IPayload;
 import org.iq80.leveldb.DB;
+import org.iq80.leveldb.DBIterator;
 import org.iq80.leveldb.Options;
 
 import java.io.*;
@@ -30,8 +31,14 @@ public class DefaultBroker implements IBroker<IEvent<IPayload>> {
     }
 
     public <T extends IEvent> void publish(T event, Map<String, List<ICallback>> subscribers) {
-        String id = event.getId() + "_" + event.getTimestamp();
-        levelDB.put(id.getBytes(), getBytes(event.getBody().getData()));
+        if (!(event.getBody().getData() instanceof ApplicationBrokerObject)) {
+            String id = String.valueOf(System.currentTimeMillis());
+            levelDB.put(id.getBytes(), getBytes(event));
+        }
+        sendToSubscribers(event, subscribers);
+    }
+
+    private <T extends IEvent> void sendToSubscribers(T event, Map<String, List<ICallback>> subscribers) {
         List<ICallback> callbacks = (List) subscribers.get(event.getId());
         if (callbacks != null) {
             callbacks.stream().forEach((c) -> {
@@ -41,13 +48,13 @@ public class DefaultBroker implements IBroker<IEvent<IPayload>> {
         }
     }
 
-    private byte[] getBytes(IBrokerObject data) {
+    private byte[] getBytes(IEvent event) {
         byte[] dataBytes = null;
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         ObjectOutput out = null;
         try {
             out = new ObjectOutputStream(bos);
-            out.writeObject(data);
+            out.writeObject(event);
             out.flush();
             dataBytes = bos.toByteArray();
             return dataBytes;
@@ -89,5 +96,39 @@ public class DefaultBroker implements IBroker<IEvent<IPayload>> {
             IPayload payload = this.event.getBody();
             this.callback.receive(payload.getData());
         }
+    }
+
+    @Override
+    public void replay(Map<String, List<ICallback>> subscribers) {
+        DBIterator iterator = levelDB.iterator();
+        while (iterator.hasNext()) {
+            byte[] key = iterator.peekNext().getKey();
+            byte[] value = iterator.peekNext().getValue();
+            IEvent data = (IEvent) getJavaObject(value);
+            System.out.println(new String(key) + ":" + data);
+            sendToSubscribers(data, subscribers);
+            iterator.next();
+        }
+    }
+
+    private Object getJavaObject(byte[] serializedData) {
+        Object o = null;
+        ByteArrayInputStream bis = new ByteArrayInputStream(serializedData);
+        ObjectInput in = null;
+        try {
+            in = new ObjectInputStream(bis);
+            o = in.readObject();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (in != null) {
+                    in.close();
+                }
+            } catch (IOException ex) {
+                // ignore close exception
+            }
+        }
+        return o;
     }
 }

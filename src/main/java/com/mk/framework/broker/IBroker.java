@@ -7,7 +7,9 @@ import java.util.List;
 import java.util.Map;
 
 public interface IBroker<T> {
-    <T extends IEvent> void publish(T var1, Map<String, List<ICallback>> var2);
+    <T extends IEvent> void publish(T event, Map<String, List<ICallback>> listeners);
+
+    void replay(Map<String, List<ICallback>> listeners);
 
     void stop();
 }

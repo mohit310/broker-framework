@@ -1,6 +1,6 @@
 package com.mk.framework.context;
 
-import com.mk.framework.IBrokerObject;
+import com.mk.framework.data.IBrokerObject;
 import com.mk.framework.base.IComponent;
 import com.mk.framework.broker.DefaultBroker;
 import com.mk.framework.broker.IBroker;
@@ -10,9 +10,7 @@ import com.mk.framework.event.DefaultPayLoad;
 import com.mk.framework.event.IEvent;
 import com.mk.framework.event.IPayload;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -30,12 +28,14 @@ public class ApplicationContext implements IContext {
         this.initializeComponents();
     }
 
+    @Override
     public void start() {
         ApplicationBrokerObject applicationBrokerObject = new ApplicationBrokerObject();
         applicationBrokerObject.setData("STARTING ALL COMPONENTS");
         send("start", applicationBrokerObject);
     }
 
+    @Override
     public void stop() {
         ApplicationBrokerObject applicationBrokerObject = new ApplicationBrokerObject();
         applicationBrokerObject.setData("STOPPING ALL COMPONENTS");
@@ -51,6 +51,7 @@ public class ApplicationContext implements IContext {
 
     }
 
+    @Override
     public void send(String messageTopic, IBrokerObject data) {
         IEvent<IPayload> event = this.createEvent(messageTopic, data);
         broker.publish(event, this.subscribers);
@@ -60,13 +61,11 @@ public class ApplicationContext implements IContext {
         IPayload payload = new DefaultPayLoad();
         payload.setData(data);
         IEvent<IPayload> event = new DefaultEvent(messageTopic, System.currentTimeMillis());
-        Map<String, Object> eventHeaders = new HashMap();
-        eventHeaders.put("TIMESTAMP", LocalDateTime.now());
-        event.setHeader(eventHeaders);
         event.setBody(payload);
         return event;
     }
 
+    @Override
     public void addSubscriber(String id, ICallback callback) {
         List<ICallback> callbacks = (List) this.subscribers.get(id);
         if (callbacks == null) {
@@ -79,4 +78,8 @@ public class ApplicationContext implements IContext {
         }
     }
 
+    @Override
+    public void replay() {
+        broker.replay(subscribers);
+    }
 }

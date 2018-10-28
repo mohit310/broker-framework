@@ -1,10 +1,18 @@
 package com.mk.framework;
 
+import com.mk.framework.base.IComponent;
+import com.mk.framework.context.ApplicationContext;
+import com.mk.framework.context.IContext;
+import com.mk.framework.event.IEvent;
+import com.mk.framework.example.Ping;
+import com.mk.framework.example.Pong;
 import org.iq80.leveldb.DB;
 import org.iq80.leveldb.DBIterator;
 import org.iq80.leveldb.Options;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.iq80.leveldb.impl.Iq80DBFactory.factory;
 
@@ -19,12 +27,19 @@ public class PrintLevelDB {
             while (iterator.hasNext()) {
                 byte[] key = iterator.peekNext().getKey();
                 byte[] value = iterator.peekNext().getValue();
-                IBrokerObject data = (IBrokerObject) getJavaObject(value);
+                IEvent data = (IEvent) getJavaObject(value);
                 System.out.println(new String(key) + ":" + data);
                 iterator.next();
             }
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            if (levelDB != null)
+                try {
+                    levelDB.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
         }
 
     }

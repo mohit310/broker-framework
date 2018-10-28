@@ -1,6 +1,6 @@
 package com.mk.framework.example;
 
-import com.mk.framework.IBrokerObject;
+import com.mk.framework.data.IBrokerObject;
 
 public class PongData implements IBrokerObject {
     private String data;
