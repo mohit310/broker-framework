@@ -1,11 +1,15 @@
 package com.mk.framework;
 
-import com.mk.framework.event.IEvent;
+import com.google.protobuf.ByteString;
+import com.google.protobuf.InvalidProtocolBufferException;
+import com.mk.framework.context.ApplicationProto;
 import org.iq80.leveldb.DB;
 import org.iq80.leveldb.DBIterator;
 import org.iq80.leveldb.Options;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
 
 import static org.iq80.leveldb.impl.Iq80DBFactory.factory;
 
@@ -20,8 +24,8 @@ public class PrintLevelDB {
             while (iterator.hasNext()) {
                 byte[] key = iterator.peekNext().getKey();
                 byte[] value = iterator.peekNext().getValue();
-                IEvent data = (IEvent) getJavaObject(value);
-                System.out.println(new String(key) + ":" + data);
+                ApplicationProto.ApplicationData applicationData = getAppDataObject(value);
+                System.out.println(ByteString.copyFrom(key).toString(Charset.defaultCharset()) + ":\n" + applicationData);
                 iterator.next();
             }
         } catch (IOException e) {
@@ -37,24 +41,14 @@ public class PrintLevelDB {
 
     }
 
-    private static Object getJavaObject(byte[] serializedData) {
-        Object o = null;
-        ByteArrayInputStream bis = new ByteArrayInputStream(serializedData);
-        ObjectInput in = null;
+    private static ApplicationProto.ApplicationData getAppDataObject(byte[] value) {
         try {
-            in = new ObjectInputStream(bis);
-            o = in.readObject();
-        } catch (Exception e) {
+            ApplicationProto.ApplicationData applicationData = ApplicationProto.ApplicationData.parseFrom(value);
+            return applicationData;
+        } catch (InvalidProtocolBufferException e) {
             e.printStackTrace();
-        } finally {
-            try {
-                if (in != null) {
-                    in.close();
-                }
-            } catch (IOException ex) {
-                // ignore close exception
-            }
         }
-        return o;
+        return null;
     }
+
 }

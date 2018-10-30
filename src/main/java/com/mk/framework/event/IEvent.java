@@ -1,8 +1,6 @@
 package com.mk.framework.event;
 
-import java.io.Serializable;
-
-public interface IEvent<T> extends Serializable {
+public interface IEvent<T> {
 
     String getId();
 

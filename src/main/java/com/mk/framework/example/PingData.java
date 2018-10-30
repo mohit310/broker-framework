@@ -19,4 +19,24 @@ public class PingData implements IBrokerObject {
                 "data='" + data + '\'' +
                 '}';
     }
+
+    @Override
+    public byte[] serialize() {
+        Example.PingData.Builder newBuilder = Example.PingData.newBuilder();
+        newBuilder.setData(data);
+        return newBuilder.build().toByteArray();
+    }
+
+    @Override
+    public IBrokerObject deserialize(byte[] data) {
+        try {
+            Example.PingData pingData = Example.PingData.parseFrom(data);
+            PingData pingDataJava = new PingData();
+            pingDataJava.setData(pingData.getData());
+            return pingDataJava;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }

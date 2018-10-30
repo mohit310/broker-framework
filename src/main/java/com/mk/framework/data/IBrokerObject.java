@@ -1,7 +1,9 @@
 package com.mk.framework.data;
 
-import java.io.Serializable;
+public interface IBrokerObject {
 
-public interface IBrokerObject extends Serializable {
+    byte[] serialize();
+
+    IBrokerObject deserialize(byte[] data);
 
 }

@@ -19,4 +19,24 @@ public class PongData implements IBrokerObject {
                 "data='" + data + '\'' +
                 '}';
     }
+
+    @Override
+    public byte[] serialize() {
+        Example.PongData.Builder newBuilder = Example.PongData.newBuilder();
+        newBuilder.setData(data);
+        return newBuilder.build().toByteArray();
+    }
+
+    @Override
+    public IBrokerObject deserialize(byte[] data) {
+        try {
+            Example.PongData pongData = Example.PongData.parseFrom(data);
+            PongData pongDataJava = new PongData();
+            pongDataJava.setData(pongData.getData());
+            return pongDataJava;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }

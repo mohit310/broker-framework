@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package com.mk.framework.example;
+
+message PingData {
+  string data = 1;
+}
+
+message PongData {
+  string data = 1;
+}
+

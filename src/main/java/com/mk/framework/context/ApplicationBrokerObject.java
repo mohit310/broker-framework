@@ -19,4 +19,14 @@ public class ApplicationBrokerObject implements IBrokerObject {
                 "data='" + data + '\'' +
                 '}';
     }
+
+    @Override
+    public byte[] serialize() {
+        return new byte[0];
+    }
+
+    @Override
+    public IBrokerObject deserialize(byte[] data) {
+        return null;
+    }
 }

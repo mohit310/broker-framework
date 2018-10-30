@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package com.mk.framework.context;
+
+message ApplicationData {
+  string key = 1;
+  string classname = 2;
+  string ibrokerobject = 3;
+}

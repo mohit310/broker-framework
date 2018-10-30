@@ -1,14 +1,21 @@
 package com.mk.framework.broker;
 
+import com.google.protobuf.ByteString;
 import com.mk.framework.consumer.ICallback;
 import com.mk.framework.context.ApplicationBrokerObject;
+import com.mk.framework.context.ApplicationProto;
+import com.mk.framework.data.IBrokerObject;
+import com.mk.framework.event.DefaultEvent;
+import com.mk.framework.event.DefaultPayLoad;
 import com.mk.framework.event.IEvent;
 import com.mk.framework.event.IPayload;
 import org.iq80.leveldb.DB;
 import org.iq80.leveldb.DBIterator;
 import org.iq80.leveldb.Options;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -33,9 +40,25 @@ public class DefaultBroker implements IBroker<IEvent<IPayload>> {
     public <T extends IEvent> void publish(T event, Map<String, List<ICallback>> subscribers) {
         if (!(event.getBody().getData() instanceof ApplicationBrokerObject)) {
             String id = String.valueOf(System.currentTimeMillis());
-            levelDB.put(id.getBytes(), getBytes(event));
+            IBrokerObject iBrokerObject = event.getBody().getData();
+            Class className = iBrokerObject.getClass();
+            byte[] appProto = getApplicationProto(event.getId(), className, iBrokerObject);
+            levelDB.put(id.getBytes(), appProto);
         }
         sendToSubscribers(event, subscribers);
+    }
+
+    private byte[] getApplicationProto(String id, Class className, IBrokerObject iBrokerObject) {
+        try {
+            ApplicationProto.ApplicationData.Builder builder = ApplicationProto.ApplicationData.newBuilder();
+            builder.setKey(id);
+            builder.setClassname(className.getCanonicalName());
+            builder.setIbrokerobjectBytes(ByteString.copyFrom(iBrokerObject.serialize()));
+            return builder.build().toByteArray();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     private <T extends IEvent> void sendToSubscribers(T event, Map<String, List<ICallback>> subscribers) {
@@ -46,28 +69,6 @@ public class DefaultBroker implements IBroker<IEvent<IPayload>> {
                 this.executorService.execute(t);
             });
         }
-    }
-
-    private byte[] getBytes(IEvent event) {
-        byte[] dataBytes = null;
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        ObjectOutput out = null;
-        try {
-            out = new ObjectOutputStream(bos);
-            out.writeObject(event);
-            out.flush();
-            dataBytes = bos.toByteArray();
-            return dataBytes;
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                bos.close();
-            } catch (IOException ex) {
-                // ignore close exception
-            }
-        }
-        return dataBytes;
     }
 
     public void stop() {
@@ -103,32 +104,31 @@ public class DefaultBroker implements IBroker<IEvent<IPayload>> {
         DBIterator iterator = levelDB.iterator();
         while (iterator.hasNext()) {
             byte[] key = iterator.peekNext().getKey();
+            ByteString keyByteString = ByteString.copyFrom(key);
+            String keyStr = keyByteString.toString(Charset.defaultCharset());
             byte[] value = iterator.peekNext().getValue();
-            IEvent data = (IEvent) getJavaObject(value);
-            System.out.println(new String(key) + ":" + data);
+            IEvent data = (IEvent) getEventFromKS(keyStr, value);
+            System.out.println(keyStr + ":" + data);
             sendToSubscribers(data, subscribers);
             iterator.next();
         }
     }
 
-    private Object getJavaObject(byte[] serializedData) {
-        Object o = null;
-        ByteArrayInputStream bis = new ByteArrayInputStream(serializedData);
-        ObjectInput in = null;
+    private Object getEventFromKS(String timeStamp, byte[] value) {
         try {
-            in = new ObjectInputStream(bis);
-            o = in.readObject();
+            ApplicationProto.ApplicationData applicationData = ApplicationProto.ApplicationData.parseFrom(value);
+            String id = applicationData.getKey();
+            String className = applicationData.getClassname();
+            IBrokerObject brokerObjectInstance = (IBrokerObject) Class.forName(className).newInstance();
+            IBrokerObject newBrokerObject = (IBrokerObject) brokerObjectInstance.deserialize(applicationData.getIbrokerobjectBytes().toByteArray());
+            IEvent event = new DefaultEvent(id, Long.valueOf(timeStamp));
+            DefaultPayLoad payLoad = new DefaultPayLoad();
+            payLoad.setData(newBrokerObject);
+            event.setBody(payLoad);
+            return event;
         } catch (Exception e) {
             e.printStackTrace();
-        } finally {
-            try {
-                if (in != null) {
-                    in.close();
-                }
-            } catch (IOException ex) {
-                // ignore close exception
-            }
         }
-        return o;
+        return null;
     }
 }
